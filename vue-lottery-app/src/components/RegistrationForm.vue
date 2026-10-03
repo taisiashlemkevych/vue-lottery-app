@@ -4,6 +4,10 @@ import BaseInput from "./BaseInput.vue";
 import BaseButton from "./BaseButton.vue";
 import type { Participant } from "../types/Participant";
 
+const props = defineProps<{
+  participants: Participant[];
+}>();
+
 const emit = defineEmits<{
   save: [participant: Participant];
 }>();
@@ -25,7 +29,6 @@ const errors = reactive({
 const generalError = ref("");
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const phoneRegex = /^\+380\d{9}$/;
 
 function clearErrors() {
@@ -49,15 +52,27 @@ function validate(): boolean {
   if (!form.email.trim()) {
     errors.email = "Email is required.";
     valid = false;
-  } else if (!emailRegex.test(form.email)) {
+  } else if (!emailRegex.test(form.email.trim())) {
     errors.email = "Enter a valid email.";
     valid = false;
+  } else {
+    const normalizedEmail = form.email.trim().toLowerCase();
+
+    const emailExists = props.participants.some(
+      (participant) =>
+        participant.email.trim().toLowerCase() === normalizedEmail,
+    );
+
+    if (emailExists) {
+      errors.email = "A participant with this email already exists.";
+      valid = false;
+    }
   }
 
   if (!form.phone.trim()) {
     errors.phone = "Phone is required.";
     valid = false;
-  } else if (!phoneRegex.test(form.phone)) {
+  } else if (!phoneRegex.test(form.phone.trim())) {
     errors.phone = "Phone must have format +380XXXXXXXXX.";
     valid = false;
   }
@@ -120,7 +135,10 @@ function handleKeydown() {
         {{ generalError }}
       </div>
 
-      <form @submit.prevent="handleSubmit" @keydown.enter="handleKeydown">
+      <form
+        @submit.prevent="handleSubmit"
+        @keydown.enter.prevent="handleKeydown"
+      >
         <BaseInput
           v-model="form.name"
           label="Name"
@@ -131,7 +149,7 @@ function handleKeydown() {
         <BaseInput
           v-model="form.email"
           label="Email"
-          type="email"
+          type="text"
           placeholder="example@email.com"
           :error="errors.email"
         />

@@ -145,7 +145,8 @@ function removeWinner(id: number) {
 
         <div class="lottery-main-grid">
           <RegistrationForm
-            @save="addParticipant"
+             :participants="participants"
+             @save="addParticipant"
           />
 
           <ParticipantsTable
