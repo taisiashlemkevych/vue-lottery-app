@@ -129,10 +129,6 @@ function removeWinner(id: number) {
         <h1 class="display-5 fw-bold">
           Vue Lottery
         </h1>
-
-        <p class="text-secondary">
-          Register participants and choose random winners
-        </p>
       </header>
 
       <div class="lottery-layout">

@@ -40,7 +40,6 @@ const canChooseWinner = computed(() => {
       </div>
 
       <div v-if="winners.length === 0" class="text-secondary">
-        No winners yet.
       </div>
 
       <div v-else class="d-flex flex-column gap-2">
