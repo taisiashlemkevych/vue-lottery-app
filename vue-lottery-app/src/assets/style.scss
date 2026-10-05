@@ -1,7 +1,7 @@
 @import 'bootstrap/scss/bootstrap';
 
-$primary-color: #6c63ff;
-$background-color: #f5f6fa;
+$primary-color: #9b59b6;
+$background-color: #f7f5f9;
 $card-radius: 14px;
 
 body {
@@ -56,8 +56,16 @@ body {
 
   &:hover,
   &:focus {
-    background-color: darken($primary-color, 8%);
-    border-color: darken($primary-color, 8%);
+    background-color: #8749a3;
+    border-color: #8749a3;
+  }
+
+  &:disabled,
+  &.disabled {
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    color: #fff;
+    opacity: 1;
   }
 }
 
@@ -66,7 +74,7 @@ body {
 
   &:focus {
     border-color: $primary-color;
-    box-shadow: 0 0 0 0.2rem rgba(108, 99, 255, 0.15);
+    box-shadow: 0 0 0 0.2rem rgba(155, 89, 182, 0.15);
   }
 }
 
@@ -128,6 +136,35 @@ body {
 .table-actions {
   display: flex;
   gap: 8px;
+
+  .btn {
+    min-width: 75px;
+    border-radius: 7px;
+    font-weight: 500;
+    transition: 0.2s ease;
+  }
+
+  .btn-outline-primary {
+    color: $primary-color;
+    border-color: $primary-color;
+
+    &:hover {
+      color: #fff;
+      background-color: $primary-color;
+      border-color: $primary-color;
+    }
+  }
+
+  .btn-outline-danger {
+    color: #d65a6f;
+    border-color: #d65a6f;
+
+    &:hover {
+      color: #fff;
+      background-color: #d65a6f;
+      border-color: #d65a6f;
+    }
+  }
 }
 
 .empty-state {
