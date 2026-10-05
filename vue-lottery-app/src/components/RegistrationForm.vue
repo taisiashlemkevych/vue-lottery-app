@@ -170,14 +170,6 @@ function handleKeydown() {
 
         <div class="d-flex gap-2">
           <BaseButton label="Save" type="submit" />
-
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            @click="resetForm"
-          >
-            Clear
-          </button>
         </div>
       </form>
     </div>
