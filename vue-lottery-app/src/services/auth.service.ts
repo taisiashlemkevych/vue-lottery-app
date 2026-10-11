@@ -9,6 +9,12 @@ export class AuthService {
     })
   }
 
+  me(): Promise<Omit<AuthResponse, 'accessToken' | 'refreshToken'>> {
+    return http<Omit<AuthResponse, 'accessToken' | 'refreshToken'>>(
+      '/auth/me',
+    )
+  }
+
   refresh(refreshToken: string): Promise<AuthResponse> {
     return http<AuthResponse>('/auth/refresh', {
       method: 'POST',
