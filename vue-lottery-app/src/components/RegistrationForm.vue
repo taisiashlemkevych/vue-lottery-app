@@ -1,177 +1,140 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import BaseInput from "./BaseInput.vue";
-import BaseButton from "./BaseButton.vue";
-import type { Participant } from "../types/Participant";
+import { reactive } from 'vue'
+import AppInput from './ui/AppInput.vue'
+import AppButton from './ui/AppButton.vue'
 
 const props = defineProps<{
-  participants: Participant[];
-}>();
+  existingEmails: string[]
+}>()
 
 const emit = defineEmits<{
-  save: [participant: Participant];
-}>();
+  (e: 'add-participant', participant: { name: string; dob: string; email: string; phone: string }): void
+}>()
 
 const form = reactive({
-  name: "",
-  email: "",
-  phone: "",
-  birthDate: "",
-});
+  name: '',
+  dob: '',
+  email: '',
+  phone: ''
+})
 
 const errors = reactive({
-  name: "",
-  email: "",
-  phone: "",
-  birthDate: "",
-});
+  name: '',
+  dob: '',
+  email: '',
+  phone: ''
+})
 
-const generalError = ref("");
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const phoneRegex = /^\+380\d{9}$/
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\+380\d{9}$/;
-
-function clearErrors() {
-  errors.name = "";
-  errors.email = "";
-  errors.phone = "";
-  errors.birthDate = "";
-  generalError.value = "";
+const clearErrors = () => {
+  errors.name = ''
+  errors.dob = ''
+  errors.email = ''
+  errors.phone = ''
 }
 
-function validate(): boolean {
-  clearErrors();
+const resetForm = () => {
+  form.name = ''
+  form.dob = ''
+  form.email = ''
+  form.phone = ''
+  clearErrors()
+}
 
-  let valid = true;
+const handleSubmit = () => {
+  clearErrors()
+  let isValid = true
 
   if (!form.name.trim()) {
-    errors.name = "Name is required.";
-    valid = false;
+    errors.name = 'This value is required.'
+    isValid = false
+  }
+
+  if (!form.dob) {
+    errors.dob = 'This value is required.'
+    isValid = false
+  } else {
+    const selectedDate = new Date(form.dob)
+    const today = new Date()
+    if (selectedDate > today) {
+      errors.dob = 'Date of birth cannot be in the future.'
+      isValid = false
+    }
   }
 
   if (!form.email.trim()) {
-    errors.email = "Email is required.";
-    valid = false;
-  } else if (!emailRegex.test(form.email.trim())) {
-    errors.email = "Enter a valid email.";
-    valid = false;
+    errors.email = 'This value is required.'
+    isValid = false
+  } else if (!emailRegex.test(form.email)) {
+    errors.email = 'Invalid email format.'
+    isValid = false
   } else {
-    const normalizedEmail = form.email.trim().toLowerCase();
-
-    const emailExists = props.participants.some(
-      (participant) =>
-        participant.email.trim().toLowerCase() === normalizedEmail,
-    );
-
-    if (emailExists) {
-      errors.email = "A participant with this email already exists.";
-      valid = false;
+    const isDuplicate = props.existingEmails.some(
+      email => email.toLowerCase() === form.email.toLowerCase()
+    )
+    if (isDuplicate) {
+      errors.email = 'Participant with this email already exists.'
+      isValid = false
     }
   }
 
   if (!form.phone.trim()) {
-    errors.phone = "Phone is required.";
-    valid = false;
-  } else if (!phoneRegex.test(form.phone.trim())) {
-    errors.phone = "Phone must have format +380XXXXXXXXX.";
-    valid = false;
+    errors.phone = 'This value is required.'
+    isValid = false
+  } else if (!phoneRegex.test(form.phone)) {
+    errors.phone = 'Phone must be in format +380XXXXXXXXX'
+    isValid = false
   }
 
-  if (!form.birthDate) {
-    errors.birthDate = "Birth date is required.";
-    valid = false;
-  } else {
-    const today = new Date();
-    const selectedDate = new Date(form.birthDate);
-
-    today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate > today) {
-      errors.birthDate = "Birth date cannot be in the future.";
-      valid = false;
-    }
+  if (isValid) {
+    emit('add-participant', { ...form })
+    resetForm()
   }
-
-  return valid;
-}
-
-function resetForm() {
-  form.name = "";
-  form.email = "";
-  form.phone = "";
-  form.birthDate = "";
-
-  clearErrors();
-}
-
-function handleSubmit() {
-  if (!validate()) {
-    return;
-  }
-
-  emit("save", {
-    id: Date.now(),
-    name: form.name.trim(),
-    email: form.email.trim(),
-    phone: form.phone.trim(),
-    birthDate: form.birthDate,
-  });
-
-  resetForm();
-}
-
-function handleKeydown() {
-  handleSubmit();
 }
 </script>
 
 <template>
-  <section class="card lottery-card">
-    <div class="card-body">
-      <h2 class="h4 mb-4">Registration</h2>
-
-      <div v-if="generalError" class="alert alert-danger">
-        {{ generalError }}
-      </div>
-
-      <form
-        @submit.prevent="handleSubmit"
-        @keydown.enter.prevent="handleKeydown"
-      >
-        <BaseInput
-          v-model="form.name"
-          label="Name"
-          placeholder="Enter name"
-          :error="errors.name"
-        />
-
-        <BaseInput
-          v-model="form.email"
-          label="Email"
-          type="text"
-          placeholder="example@email.com"
-          :error="errors.email"
-        />
-
-        <BaseInput
-          v-model="form.phone"
-          label="Phone"
-          placeholder="+380XXXXXXXXX"
-          :error="errors.phone"
-        />
-
-        <BaseInput
-          v-model="form.birthDate"
-          label="Birth date"
-          type="date"
-          :error="errors.birthDate"
-        />
-
-        <div class="d-flex gap-2">
-          <BaseButton label="Save" type="submit" />
-        </div>
-      </form>
+  <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    <div class="mb-6">
+      <h2 class="text-lg font-bold text-gray-800 uppercase tracking-wide">Register Form</h2>
+      <p class="text-sm text-gray-500">Please fill in all the fields.</p>
     </div>
-  </section>
+
+    <form @submit.prevent="handleSubmit" class="space-y-4">
+      <AppInput
+        v-model="form.name"
+        label="Name"
+        placeholder="Enter user name"
+        :error="errors.name"
+      />
+
+      <AppInput
+        v-model="form.dob"
+        type="date"
+        label="Date of Birth"
+        :error="errors.dob"
+      />
+
+      <AppInput
+        v-model="form.email"
+        type="email"
+        label="Email"
+        placeholder="Enter email"
+        :error="errors.email"
+      />
+
+      <AppInput
+        v-model="form.phone"
+        label="Phone number"
+        placeholder="+380XXXXXXXXX"
+        :error="errors.phone"
+      />
+
+      <div class="flex justify-end pt-2">
+        <AppButton type="submit">Save</AppButton>
+      </div>
+    </form>
+  </div>
 </template>

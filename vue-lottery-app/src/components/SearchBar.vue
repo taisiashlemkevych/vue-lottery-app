@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-
-const search = ref('')
+import AppInput from './ui/AppInput.vue'
 
 const emit = defineEmits<{
-    'filter-by-name': [value: string]
+  (e: 'filter-by-name', query: string): void
 }>()
 
-let timeoutId: ReturnType<typeof setTimeout> | undefined
+const searchQuery = ref('')
+let timeoutId: ReturnType<typeof setTimeout>
 
-watch(search, value => {
-    if (timeoutId) {
-        clearTimeout(timeoutId)
-    }
-
-    timeoutId = setTimeout(() => {
-        emit('filter-by-name', value)
-    }, 300)
+watch(searchQuery, (newValue) => {
+  clearTimeout(timeoutId)
+  
+  timeoutId = setTimeout(() => {
+    emit('filter-by-name', newValue)
+  }, 300)
 })
 </script>
 
 <template>
-    <div class="input-group search-bar">
-
-        <input v-model="search" type="search" class="form-control" placeholder="Search by name...">
-    </div>
+  <div class="mb-4">
+    <AppInput 
+      v-model="searchQuery" 
+      placeholder="Search by name..." 
+    />
+  </div>
 </template>
