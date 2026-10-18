@@ -1,7 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { useAuthStore } from '@/entities/session/model/auth.store'
-import { useSettingsStore } from '@/entities/settings/model/settings.store'
+import { useAuthStore } from '@/entities/session'
+import { useSettingsStore } from '@/shared/model'
 
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
@@ -64,3 +64,5 @@ const settingsStore = useSettingsStore()
     </RouterLink>
   </nav>
 </template>
+
+

@@ -1,6 +1,6 @@
-import { http } from "@/shared/api/http-client";
-import type { User, CreateUserDto, UpdateUserDto } from '@/entities/user/model/types'
-import type { Readable, Creatable, Editable, Deletable } from '@/shared/api/interfaces'
+﻿import { http } from "@/shared/api";
+import type { User, CreateUserDto, UpdateUserDto } from '@/entities/user'
+import type { Readable, Creatable, Editable, Deletable } from '@/shared/api'
 
 interface UsersResponse {
   users: User[];
@@ -50,3 +50,4 @@ export class UserService
     await http(`/users/${id}`, { method: 'DELETE' });
   }
 }
+

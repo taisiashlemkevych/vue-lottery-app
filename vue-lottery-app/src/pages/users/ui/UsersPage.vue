@@ -1,16 +1,15 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
-
-import type { Participant } from '@/entities/participant/model/types'
-import { useUsersStore } from '@/entities/user/model/users.store'
+import type { Participant } from './types'
+import { useUsersStore } from '@/entities/user'
 import AppInput from '@/shared/ui/AppInput.vue'
 import AppButton from '@/shared/ui/AppButton.vue'
 import AppTable from '@/shared/ui/AppTable.vue'
 import AppConfirmDialog from '@/shared/ui/AppConfirmDialog.vue'
-import WinnersBlock from '@/widgets/winners-block/ui/WinnersBlock.vue'
+import WinnersBlock from './WinnersBlock.vue'
 
 defineOptions({
   name: 'UsersLotteryPage',
@@ -103,7 +102,6 @@ const loadUsers = async () => {
       q: searchQuery.value,
     })
   } catch {
-    // Помилка зберігається у сховищі.
   }
 }
 

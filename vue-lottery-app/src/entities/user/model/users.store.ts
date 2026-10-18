@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ServiceProvider } from '@/shared/api/service-provider'
-import { UserService } from '@/entities/user/api/user.service'
+import { ServiceProvider } from '@/shared/api'
+import { UserService } from '@/entities/user'
 import type {
   User,
   CreateUserDto,
   UpdateUserDto,
-} from '@/entities/user/model/types'
+} from '@/entities/user'
 
 export const useUsersStore = defineStore('users', () => {
   const users = ref<User[]>([])
@@ -97,3 +97,4 @@ export const useUsersStore = defineStore('users', () => {
     removeUser,
   }
 })
+

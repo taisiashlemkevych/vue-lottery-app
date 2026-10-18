@@ -3,8 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
-import { useUsersStore } from '@/entities/user/model/users.store'
-import type { CreateUserDto } from '@/entities/user/model/types'
+import { useUsersStore } from '@/entities/user'
+import type { CreateUserDto } from '@/entities/user'
 import AppInput from '@/shared/ui/AppInput.vue'
 import AppButton from '@/shared/ui/AppButton.vue'
 
@@ -126,3 +126,4 @@ const onSubmit = handleSubmit(async (values) => {
     </div>
   </div>
 </template>
+

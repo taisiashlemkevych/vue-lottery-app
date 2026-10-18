@@ -29,7 +29,6 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       localStorage.setItem(STORAGE_KEY, value)
     } catch {
-      // Тема працюватиме до перезавантаження сторінки.
     }
   }
 

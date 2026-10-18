@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
-import { useUsersStore } from '@/entities/user/model/users.store'
+import { useUsersStore } from '@/entities/user'
 import AppButton from '@/shared/ui/AppButton.vue'
 
 const props = defineProps<{
@@ -96,3 +96,4 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+

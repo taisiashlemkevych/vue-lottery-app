@@ -1,4 +1,4 @@
-import { http } from "@/shared/api/http-client";
+﻿import { http } from "@/shared/api";
 import type { AuthResponse, LoginCredentials } from '@/entities/session/model/types'
 
 export class AuthService {
@@ -22,3 +22,4 @@ export class AuthService {
     })
   }
 }
+

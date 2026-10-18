@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import AppHeader from "@/widgets/app-header/ui/AppHeader.vue";
+﻿<script setup lang="ts">
+import { AppHeader } from '@/widgets/app-header'
 </script>
 
 <template>
@@ -10,3 +10,4 @@ import AppHeader from "@/widgets/app-header/ui/AppHeader.vue";
     </main>
   </div>
 </template>
+

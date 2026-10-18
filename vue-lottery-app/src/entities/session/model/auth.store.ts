@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { ServiceProvider } from '@/shared/api/service-provider'
-import { AuthService } from '@/entities/session/api/auth.service'
+import { ServiceProvider } from '@/shared/api'
+import { AuthService } from '@/entities/session'
 import type {
   AuthResponse,
   LoginCredentials,

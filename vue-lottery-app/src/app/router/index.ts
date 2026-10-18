@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from "@/entities/session/model/auth.store";
+import { useAuthStore } from "@/entities/session";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,12 +10,6 @@ const router = createRouter({
       component: () => import('@/pages/home/ui/HomePage.vue'),
       meta: { title: 'Головна | Vue Lottery' },
     },
-    // {
-    //   path: '/lottery',
-    //   name: 'lottery',
-    //   component: () => import('@/Lottery.vue'),
-    //   meta: { title: 'Лотерея | Vue Lottery' },
-    // },
     {
       path: '/about',
       name: 'about',
