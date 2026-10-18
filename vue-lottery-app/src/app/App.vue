@@ -1,10 +1,10 @@
 ﻿<script setup lang="ts">
 import { onMounted } from 'vue'
 import AppLayout from '@/app/layouts/AppLayout.vue'
-import { useAuthStore } from '@/entities/session'
+import { useSessionStore } from '@/entities/session'
 import Toast from 'primevue/toast'
 
-const authStore = useAuthStore()
+const authStore = useSessionStore()
 
 onMounted(() => {
   authStore.initAuth()

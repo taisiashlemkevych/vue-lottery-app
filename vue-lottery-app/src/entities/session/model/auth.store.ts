@@ -1,34 +1,51 @@
-﻿import { defineStore } from 'pinia'
+﻿
+import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ServiceProvider } from '@/shared/api'
-import { AuthService } from '@/entities/session'
+import { AuthService } from '../api/auth.service'
 import type {
   AuthResponse,
   LoginCredentials,
-} from '@/entities/session/model/types'
+} from './types'
 
-export const useAuthStore = defineStore(
-  'auth',
+export const useSessionStore = defineStore(
+  'session',
   () => {
     const user = ref<Partial<AuthResponse> | null>(null)
     const accessToken = ref<string | null>(null)
     const refreshToken = ref<string | null>(null)
 
     const isAuthenticated = computed(() => !!accessToken.value)
+
     const authService = ServiceProvider.get<AuthService>('auth')
+
+    function setSession(token: string) {
+      accessToken.value = token
+      localStorage.setItem('access_token', token)
+    }
+
+    function clearSession() {
+      user.value = null
+      accessToken.value = null
+      refreshToken.value = null
+
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user')
+    }
 
     async function login(credentials: LoginCredentials) {
       const data = await authService.login(credentials)
 
       user.value = data
-      accessToken.value = data.accessToken
+      setSession(data.accessToken)
+
       refreshToken.value = data.refreshToken
+      localStorage.setItem('refresh_token', data.refreshToken)
     }
 
     function logout() {
-      user.value = null
-      accessToken.value = null
-      refreshToken.value = null
+      clearSession()
     }
 
     async function fetchCurrentUser() {
@@ -51,7 +68,7 @@ export const useAuthStore = defineStore(
         await fetchCurrentUser()
       } catch (error) {
         console.error('Failed to restore session:', error)
-        logout()
+        clearSession()
       }
     }
 
@@ -60,6 +77,8 @@ export const useAuthStore = defineStore(
       accessToken,
       refreshToken,
       isAuthenticated,
+      setSession,
+      clearSession,
       login,
       logout,
       fetchCurrentUser,
@@ -68,7 +87,7 @@ export const useAuthStore = defineStore(
   },
   {
     persist: {
-      key: 'auth',
+      key: 'session',
       pick: ['user', 'accessToken', 'refreshToken'],
     },
   },

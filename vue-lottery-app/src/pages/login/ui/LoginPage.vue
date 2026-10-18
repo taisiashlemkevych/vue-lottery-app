@@ -3,14 +3,14 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
-import { useAuthStore } from "@/entities/session";
+import { useSessionStore } from "@/entities/session";
 import AppInput from '@/shared/ui/AppInput.vue'
 import AppButton from "@/shared/ui/AppButton.vue";
 import type { LoginCredentials } from '@/entities/session'
 
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
+const authStore = useSessionStore()
 const authError = ref('')
 
 const schema = yup.object({

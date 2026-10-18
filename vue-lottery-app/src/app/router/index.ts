@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from "@/entities/session";
+import { useSessionStore } from "@/entities/session";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,7 +60,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   document.title = (to.meta.title as string) || 'Vue Lottery App'
-  const authStore = useAuthStore()
+  const authStore = useSessionStore()
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }

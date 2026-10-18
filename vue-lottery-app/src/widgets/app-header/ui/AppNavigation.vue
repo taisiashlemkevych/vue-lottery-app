@@ -1,9 +1,9 @@
 ﻿<script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { useAuthStore } from '@/entities/session'
+import { useSessionStore } from '@/entities/session'
 import { useSettingsStore } from '@/shared/model'
 
-const authStore = useAuthStore()
+const authStore = useSessionStore()
 const settingsStore = useSettingsStore()
 </script>
 
@@ -49,7 +49,7 @@ const settingsStore = useSettingsStore()
       v-if="authStore.isAuthenticated"
       type="button"
       class="font-medium text-slate-500 transition-colors hover:text-rose-500"
-      @click="authStore.logout()"
+      @click="authStore.clearSession()"
     >
       Вийти
     </button>
