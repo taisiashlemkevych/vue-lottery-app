@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useToast } from 'primevue/usetoast'
+
 import type { Participant } from '@/entities/participant/model/types'
 import { useUsersStore } from '@/entities/user/model/users.store'
 import AppInput from '@/shared/ui/AppInput.vue'
 import AppButton from '@/shared/ui/AppButton.vue'
+import AppTable from '@/shared/ui/AppTable.vue'
+import AppConfirmDialog from '@/shared/ui/AppConfirmDialog.vue'
 import WinnersBlock from '@/widgets/winners-block/ui/WinnersBlock.vue'
 
 defineOptions({
@@ -15,8 +19,11 @@ defineOptions({
 const route = useRoute()
 const router = useRouter()
 const usersStore = useUsersStore()
+const toast = useToast()
 
-const { users, total: totalUsers, loading: isLoading, error } = storeToRefs(usersStore)
+const { users, total: totalUsers, loading: isLoading, error } =
+  storeToRefs(usersStore)
+
 const { fetchUsers: fetchUsersFromStore, removeUser } = usersStore
 
 const limit = 10
@@ -27,26 +34,22 @@ let searchTimeout: ReturnType<typeof setTimeout> | undefined
 const winnerIds = ref<number[]>([])
 const STORAGE_KEY_WINNERS = 'lottery_winners'
 
-onMounted(() => {
-  const savedWinners = localStorage.getItem(STORAGE_KEY_WINNERS)
+const showDeleteDialog = ref(false)
+const selectedUserId = ref<number | null>(null)
+const isDeleting = ref(false)
 
-  if (savedWinners) {
-    try {
-      winnerIds.value = JSON.parse(savedWinners)
-    } catch (error) {
-      console.error(error)
-    }
-  }
+const tableColumns = [
+  { field: 'id', header: 'ID' },
+  { field: 'fullName', header: "Ім'я" },
+  { field: 'email', header: 'Email' },
+  { field: 'phone', header: 'Телефон' },
+]
 
-  loadUsers()
-})
-
-watch(
-  winnerIds,
-  (newVal) => {
-    localStorage.setItem(STORAGE_KEY_WINNERS, JSON.stringify(newVal))
-  },
-  { deep: true },
+const tableUsers = computed(() =>
+  users.value.map((user) => ({
+    ...user,
+    fullName: `${user.firstName} ${user.lastName}`,
+  })),
 )
 
 const participantsForWinners = computed<Participant[]>(() =>
@@ -74,7 +77,10 @@ const currentWinners = computed<Participant[]>(() =>
         phone: user.phone,
       }
     })
-    .filter((participant): participant is Participant => participant !== undefined),
+    .filter(
+      (participant): participant is Participant =>
+        participant !== undefined,
+    ),
 )
 
 const handleAddWinner = (winner: Participant) => {
@@ -101,14 +107,43 @@ const loadUsers = async () => {
   }
 }
 
-const deleteUser = async (id: number) => {
-  if (!confirm('Ви впевнені, що хочете видалити цього користувача?')) return
+const requestDeleteUser = (id: number) => {
+  selectedUserId.value = id
+  showDeleteDialog.value = true
+}
+
+const confirmDeleteUser = async () => {
+  const id = selectedUserId.value
+
+  if (id === null) return
+
+  isDeleting.value = true
 
   try {
     await removeUser(id)
-    winnerIds.value = winnerIds.value.filter((winnerId) => winnerId !== id)
+
+    winnerIds.value = winnerIds.value.filter(
+      (winnerId) => winnerId !== id,
+    )
+
+    showDeleteDialog.value = false
+    selectedUserId.value = null
+
+    toast.add({
+      severity: 'success',
+      summary: 'Успішно',
+      detail: 'Користувача видалено',
+      life: 3000,
+    })
   } catch {
-    alert('Помилка видалення')
+    toast.add({
+      severity: 'error',
+      summary: 'Помилка',
+      detail: 'Не вдалося видалити користувача',
+      life: 4000,
+    })
+  } finally {
+    isDeleting.value = false
   }
 }
 
@@ -139,7 +174,9 @@ const prevPage = () => {
 const handleSearch = (newValue: string | number | undefined) => {
   const value = String(newValue || '')
 
-  if (searchTimeout) clearTimeout(searchTimeout)
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
 
   searchTimeout = setTimeout(() => {
     searchQuery.value = value
@@ -148,10 +185,41 @@ const handleSearch = (newValue: string | number | undefined) => {
   }, 500)
 }
 
+onMounted(() => {
+  const savedWinners = localStorage.getItem(STORAGE_KEY_WINNERS)
+
+  if (savedWinners) {
+    try {
+      winnerIds.value = JSON.parse(savedWinners)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  loadUsers()
+})
+
+onUnmounted(() => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+})
+
+watch(
+  winnerIds,
+  (newVal) => {
+    localStorage.setItem(STORAGE_KEY_WINNERS, JSON.stringify(newVal))
+  },
+  { deep: true },
+)
+
 watch(
   () => route.query,
   (newQuery, oldQuery) => {
-    if (newQuery.page !== oldQuery?.page || newQuery.q !== oldQuery?.q) {
+    if (
+      newQuery.page !== oldQuery?.page ||
+      newQuery.q !== oldQuery?.q
+    ) {
       currentPage.value = Number(newQuery.page) || 1
       searchQuery.value = (newQuery.q as string) || ''
       loadUsers()
@@ -160,13 +228,13 @@ watch(
 )
 </script>
 
-
 <template>
-  <main class="min-h-screen bg-slate-50 py-10 px-4">
-    <div class="max-w-7xl mx-auto space-y-8">
-
-      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
-        <h1 class="text-3xl font-bold text-center text-blue-700">
+  <main class="min-h-screen bg-slate-50 px-4 py-10">
+    <div class="mx-auto max-w-7xl space-y-8">
+      <div
+        class="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <h1 class="text-center text-3xl font-bold text-blue-700">
           Vue Lottery App
         </h1>
 
@@ -175,102 +243,131 @@ watch(
         </RouterLink>
       </div>
 
-      <WinnersBlock :participants="participantsForWinners" :winners="currentWinners" @add-winner="handleAddWinner"
-        @remove-winner="handleRemoveWinner" />
+      <WinnersBlock
+        :participants="participantsForWinners"
+        :winners="currentWinners"
+        @add-winner="handleAddWinner"
+        @remove-winner="handleRemoveWinner"
+      />
 
-      <div class="bg-[#f5f9ff] p-6 md:p-8 rounded-2xl border border-[#e1ebf8]">
+      <div
+        class="rounded-2xl border border-[#e1ebf8] bg-[#f5f9ff] p-6 md:p-8"
+      >
         <div class="mb-6 w-full max-w-md">
-          <AppInput :model-value="searchQuery" @update:model-value="handleSearch" placeholder="Знайти користувача..." />
+          <AppInput
+            :model-value="searchQuery"
+            placeholder="Знайти користувача..."
+            @update:model-value="handleSearch"
+          />
         </div>
 
-        <div v-if="isLoading" class="text-center py-12 text-slate-500 bg-white rounded-xl">
+        <div
+          v-if="isLoading"
+          class="rounded-xl bg-white py-12 text-center text-slate-500"
+        >
           Завантаження...
         </div>
 
-        <div v-else-if="error" class="text-center py-8 text-red-500 bg-white rounded-xl">
+        <div
+          v-else-if="error"
+          class="rounded-xl bg-white py-8 text-center text-red-500"
+        >
           {{ error }}
         </div>
 
-        <div v-else class="overflow-x-auto bg-white rounded-xl border border-[#e3edf8]">
-          <table class="w-full text-left text-sm text-slate-600">
-            <thead class="bg-[#eaf3ff] text-[#49698e]">
-              <tr>
-                <th class="px-4 py-4 font-semibold">ID</th>
-                <th class="px-4 py-4 font-semibold">Ім'я</th>
-                <th class="px-4 py-4 font-semibold">Email</th>
-                <th class="px-4 py-4 font-semibold">Телефон</th>
-                <th class="px-4 py-4 text-right font-semibold">Дії</th>
-              </tr>
-            </thead>
+        <AppTable
+          v-else
+          :value="tableUsers"
+          :columns="tableColumns"
+          :loading="isLoading"
+          empty-message="Користувачів не знайдено"
+        >
+          <template #cell-id="{ data }">
+            <span class="text-slate-400">
+              #{{ data.id }}
+            </span>
+          </template>
 
-            <tbody>
-              <tr v-if="users.length === 0">
-                <td colspan="5" class="px-4 py-10 text-center text-slate-400">
-                  Користувачів не знайдено
-                </td>
-              </tr>
+          <template #cell-fullName="{ data }">
+            <span class="font-medium text-slate-700">
+              {{ data.fullName }}
+            </span>
+          </template>
 
-              <tr v-for="user in users" :key="user.id"
-                class="border-t border-slate-100 hover:bg-[#f7faff] transition-colors">
-                <td class="px-4 py-4 text-slate-400">
-                  #{{ user.id }}
-                </td>
+          <template #actions="{ data }">
+            <div
+              class="flex items-center justify-end gap-3 whitespace-nowrap"
+            >
+              <RouterLink
+                :to="`/users/${data.id}`"
+                class="text-sky-600 hover:text-sky-800 hover:underline"
+              >
+                Деталі
+              </RouterLink>
 
-                <td class="px-4 py-4 font-medium text-slate-700">
-                  {{ user.firstName }} {{ user.lastName }}
-                </td>
+              <RouterLink
+                :to="`/users/${data.id}/edit`"
+                class="text-indigo-500 hover:text-indigo-700 hover:underline"
+              >
+                Редагувати
+              </RouterLink>
 
-                <td class="px-4 py-4">
-                  {{ user.email }}
-                </td>
+              <AppButton
+                variant="danger"
+                @click="requestDeleteUser(Number(data.id))"
+              >
+                Видалити
+              </AppButton>
+            </div>
+          </template>
+        </AppTable>
 
-                <td class="px-4 py-4">
-                  {{ user.phone }}
-                </td>
-
-                <td class="px-4 py-4">
-                  <div class="flex justify-end items-center gap-3 whitespace-nowrap">
-                    <RouterLink :to="`/users/${user.id}`" class="text-sky-600 hover:text-sky-800 hover:underline">
-                      Деталі
-                    </RouterLink>
-
-                    <RouterLink :to="`/users/${user.id}/edit`"
-                      class="text-indigo-500 hover:text-indigo-700 hover:underline">
-                      Редагувати
-                    </RouterLink>
-
-                    <button type="button" @click="deleteUser(user.id)"
-                      class="text-rose-400 hover:text-rose-600 hover:underline">
-                      Видалити
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6">
+        <div
+          class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
           <p class="text-sm text-slate-500">
             Усього користувачів:
-            <span class="font-semibold text-slate-700">{{ totalUsers }}</span>
+            <span class="font-semibold text-slate-700">
+              {{ totalUsers }}
+            </span>
           </p>
 
           <div class="flex items-center gap-2">
-            <AppButton variant="secondary" :disabled="currentPage === 1 || isLoading" @click="prevPage">
+            <AppButton
+              variant="secondary"
+              :disabled="currentPage === 1 || isLoading"
+              @click="prevPage"
+            >
               ← Назад
             </AppButton>
 
-            <div class="px-4 py-2 text-sm font-semibold text-sky-700 bg-[#e3efff] rounded-lg min-w-10 text-center">
+            <div
+              class="min-w-10 rounded-lg bg-[#e3efff] px-4 py-2 text-center text-sm font-semibold text-sky-700"
+            >
               {{ currentPage }}
             </div>
 
-            <AppButton variant="secondary" :disabled="currentPage * limit >= totalUsers || isLoading" @click="nextPage">
+            <AppButton
+              variant="secondary"
+              :disabled="currentPage * limit >= totalUsers || isLoading"
+              @click="nextPage"
+            >
               Далі →
             </AppButton>
           </div>
         </div>
       </div>
+
+      <AppConfirmDialog
+        :is-open="showDeleteDialog"
+        title="Підтвердження видалення"
+        message="Ви впевнені, що хочете видалити цього користувача?"
+        confirm-label="Видалити"
+        :loading="isDeleting"
+        @close="showDeleteDialog = false"
+        @confirm="confirmDeleteUser"
+      />
+
       <RouterView />
     </div>
   </main>

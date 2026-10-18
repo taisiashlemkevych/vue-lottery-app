@@ -395,3 +395,77 @@
     flex-direction: column;
   }
 }
+
+:root {
+  color-scheme: light;
+  --app-bg: #f8fafc;
+  --app-surface: #ffffff;
+  --app-text: #334155;
+  --app-muted: #64748b;
+  --app-border: #e2e8f0;
+}
+
+html.app-dark {
+  color-scheme: dark;
+  --app-bg: #0f172a;
+  --app-surface: #1e293b;
+  --app-text: #e2e8f0;
+  --app-muted: #94a3b8;
+  --app-border: #334155;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+html.app-dark body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+}
+
+/* Основні поверхні та елементи */
+html.app-dark .bg-white,
+html.app-dark .bg-gray-50,
+html.app-dark .bg-slate-50 {
+  background-color: var(--app-surface) !important;
+}
+
+html.app-dark .text-slate-500,
+html.app-dark .text-slate-600,
+html.app-dark .text-slate-700,
+html.app-dark .text-gray-700 {
+  color: var(--app-text) !important;
+}
+
+html.app-dark .border-slate-100,
+html.app-dark .border-slate-200,
+html.app-dark .border-gray-200 {
+  border-color: var(--app-border) !important;
+}
+
+html.app-dark input,
+html.app-dark textarea,
+html.app-dark select {
+  background-color: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+html.app-dark input::placeholder,
+html.app-dark textarea::placeholder {
+  color: var(--app-muted);
+}
+
+html.app-dark button:hover {
+  transition: background-color 0.2s ease;
+}

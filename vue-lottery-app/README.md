@@ -46,3 +46,47 @@ npm run build
 ```sh
 npm run lint
 ```
+## Архітектура проєкту — Feature-Sliced Design (FSD)
+
+Проєкт організовано за архітектурою Feature-Sliced Design. Кожен верхній шар може залежати від шарів, розташованих нижче, але не навпаки.
+
+```mermaid
+flowchart TB
+    app["app<br/>Ініціалізація, маршрутизація, провайдери"]
+    pages["pages<br/>Сторінки застосунку"]
+    widgets["widgets<br/>Самостійні UI-блоки"]
+    features["features<br/>Користувацькі дії"]
+    entities["entities<br/>Бізнес-сутності та Pinia stores"]
+    shared["shared<br/>UI, API, утиліти та спільний код"]
+
+    app --> pages
+    pages --> widgets
+    pages --> features
+    pages --> entities
+    pages --> shared
+
+    widgets --> features
+    widgets --> entities
+    widgets --> shared
+
+    features --> entities
+    features --> shared
+
+    entities --> shared
+
+    classDef layer fill:#eaf3ff,stroke:#3b82f6,color:#1e3a8a,stroke-width:1.5px
+    class app,pages,widgets,features,entities,shared layer
+```
+
+### Призначення шарів
+
+- **app** — запуск застосунку, маршрутизація, глобальні провайдери та конфігурація.
+- **pages** — сторінки, які відповідають маршрутам.
+- **widgets** — великі композиційні блоки інтерфейсу.
+- **features** — окремі користувацькі дії та сценарії.
+- **entities** — бізнес-сутності, їхні типи, API та сховища стану.
+- **shared** — повторно використовувані компоненти інтерфейсу, API-клієнти та утиліти.
+
+### Правило залежностей
+
+Залежності спрямовані від верхніх шарів до нижніх. Наприклад, `pages` може використовувати `widgets`, `features`, `entities` і `shared`, а `entities` може використовувати `shared`. Зворотні залежності між шарами не допускаються.

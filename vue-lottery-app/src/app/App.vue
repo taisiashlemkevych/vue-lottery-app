@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import AppLayout from "@/app/layouts/AppLayout.vue"; 
 import { onMounted } from 'vue'
-import { useAuthStore } from "@/entities/session/model/auth.store";
+import AppLayout from '@/app/layouts/AppLayout.vue'
+import { useAuthStore } from '@/entities/session/model/auth.store'
+import Toast from 'primevue/toast'
 
 const authStore = useAuthStore()
 
@@ -11,5 +12,6 @@ onMounted(() => {
 </script>
 
 <template>
+  <Toast position="top-right" />
   <AppLayout />
 </template>
