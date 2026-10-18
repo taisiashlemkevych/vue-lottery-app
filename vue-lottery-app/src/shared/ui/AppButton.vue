@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Button from 'primevue/button'
+
 defineProps<{
   type?: 'button' | 'submit' | 'reset'
   disabled?: boolean
@@ -7,20 +9,28 @@ defineProps<{
 </script>
 
 <template>
-  <button
+  <Button
     :type="type || 'button'"
     :disabled="disabled"
-    class="px-4 py-2 rounded-md font-medium transition-colors duration-200 text-sm"
-    :class="[
-      disabled
-        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-        : variant === 'secondary'
-          ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          : variant === 'danger'
-            ? 'bg-red-500 text-white hover:bg-red-600'
-            : 'bg-blue-600 text-white hover:bg-blue-700'
-    ]"
+    :severity="
+      variant === 'secondary'
+        ? 'secondary'
+        : variant === 'danger'
+          ? 'danger'
+          : 'primary'
+    "
+    class="app-button"
   >
     <slot />
-  </button>
+  </Button>
 </template>
+
+<style scoped>
+.app-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+</style>

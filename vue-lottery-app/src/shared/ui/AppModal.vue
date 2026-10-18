@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
+import Dialog from 'primevue/dialog'
 
 const props = defineProps<{
   isOpen: boolean
@@ -10,44 +11,33 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('close')
-  }
-}
-
-onMounted(() => document.addEventListener('keydown', handleKeydown))
-onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
+const visible = computed({
+  get: () => props.isOpen,
+  set: (value: boolean) => {
+    if (!value) {
+      emit('close')
+    }
+  },
+})
 </script>
 
 <template>
-  <Teleport to="body">
-    <div 
-      v-if="isOpen" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-    >
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative m-4">
-        
-        <button 
-          @click="emit('close')" 
-          class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
-
-        <h3 v-if="title" class="text-xl font-bold mb-4 text-gray-800">
-          {{ title }}
-        </h3>
-        
-        <div class="mb-6">
-          <slot />
-        </div>
-        
-        <div class="flex justify-end gap-3">
-          <slot name="footer" />
-        </div>
-
-      </div>
+  <Dialog
+    v-model:visible="visible"
+    :header="title"
+    modal
+    :closable="true"
+    :draggable="false"
+    :style="{ width: 'min(28rem, calc(100vw - 2rem))' }"
+  >
+    <div class="mb-6">
+      <slot />
     </div>
-  </Teleport>
+
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <slot name="footer" />
+      </div>
+    </template>
+  </Dialog>
 </template>
