@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { ServiceProvider } from "@/shared/api/service-provider";
+import { userService } from "@/app/providers/services";
 import type { User } from '@/entities/user/model/types'
 import type { Participant } from '@/entities/participant/model/types'
 import AppInput from '@/shared/ui/AppInput.vue'
@@ -86,7 +86,7 @@ const fetchUsers = async () => {
 
   try {
     const skip = (currentPage.value - 1) * limit
-    const response = await ServiceProvider.users.getAll({
+    const response = await userService.getAll({
       limit,
       skip,
       q: searchQuery.value
@@ -125,7 +125,7 @@ const deleteUser = async (id: number) => {
   if (!confirm('Ви впевнені, що хочете видалити цього користувача?')) return
 
   try {
-    await ServiceProvider.users.delete(id)
+    await userService.delete(id)
     users.value = users.value.filter(u => u.id !== id)
     totalUsers.value--
     winnerIds.value = winnerIds.value.filter(winnerId => winnerId !== id)

@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
-import { ServiceProvider } from "@/shared/api/service-provider";
+import { userService } from "@/app/providers/services";
 import AppInput from '@/shared/ui/AppInput.vue'
 import AppButton from "@/shared/ui/AppButton.vue";
 import type { User, CreateUserDto } from '@/entities/user/model/types'
@@ -50,7 +50,7 @@ const emit = defineEmits<{
 onMounted(async () => {
   if (isEditMode.value && userId.value) {
     try {
-      const user = await ServiceProvider.users.getById(userId.value)
+      const user = await userService.getById(userId.value)
       setValues({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -74,10 +74,10 @@ const onSubmit = handleSubmit(async (values) => {
     let savedUser: User
     
     if (isEditMode.value && userId.value) {
-      savedUser = await ServiceProvider.users.update(userId.value, values)
+      savedUser = await userService.update(userId.value, values)
       emit('user-saved', savedUser, false)
     } else {
-      savedUser = await ServiceProvider.users.create(values)
+      savedUser = await userService.create(values)
       savedUser.id = Math.floor(Math.random() * 1000) + 300
       emit('user-saved', savedUser, true)
     }

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { ServiceProvider } from "@/shared/api/service-provider";
+import { authService } from "@/app/providers/services";
 import type { AuthResponse, LoginCredentials } from '@/entities/session/model/types'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!accessToken.value)
 
   async function login(credentials: LoginCredentials) {
-    const data = await ServiceProvider.auth.login(credentials)
+    const data = await authService.login(credentials)
 
     user.value = data
     accessToken.value = data.accessToken
@@ -33,7 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchCurrentUser() {
-    const currentUser = await ServiceProvider.auth.me()
+    const currentUser = await authService.me()
 
     user.value = {
       ...user.value,

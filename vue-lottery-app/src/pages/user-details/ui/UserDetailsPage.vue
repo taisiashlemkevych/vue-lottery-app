@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ServiceProvider } from "@/shared/api/service-provider";
+import { userService } from "@/app/providers/services";
 import type { User } from '@/entities/user/model/types'
 import AppButton from "@/shared/ui/AppButton.vue";
 
@@ -16,7 +16,7 @@ const error = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    user.value = await ServiceProvider.users.getById(Number(props.id))
+    user.value = await userService.getById(Number(props.id))
   } catch {
     error.value = 'Не вдалося завантажити дані користувача'
   } finally {

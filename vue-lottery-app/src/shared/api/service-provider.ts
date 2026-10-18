@@ -1,17 +1,19 @@
-import { UserService } from "@/entities/user/api/user.service";
-import { AuthService } from "@/entities/session/api/auth.service";
+type ServiceKey = string;
 
 export class ServiceProvider {
-  private static userService?: UserService
-  private static authService?: AuthService 
+  private static services = new Map<ServiceKey, unknown>();
 
-  static get users(): UserService {
-    this.userService ??= new UserService()
-    return this.userService
+  static register<T>(key: ServiceKey, service: T): void {
+    this.services.set(key, service);
   }
 
-  static get auth(): AuthService {
-    this.authService ??= new AuthService()
-    return this.authService
+  static get<T>(key: ServiceKey): T {
+    const service = this.services.get(key);
+
+    if (service === undefined) {
+      throw new Error(`Service "${key}" is not registered`);
+    }
+
+    return service as T;
   }
 }
