@@ -1,74 +1,81 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { userService } from "@/app/providers/services";
-import type { User } from '@/entities/user/model/types'
+import { storeToRefs } from 'pinia'
 import type { Participant } from '@/entities/participant/model/types'
+import { useUsersStore } from '@/entities/user/model/users.store'
 import AppInput from '@/shared/ui/AppInput.vue'
-import AppButton from "@/shared/ui/AppButton.vue";
-import WinnersBlock from "@/widgets/winners-block/ui/WinnersBlock.vue";
+import AppButton from '@/shared/ui/AppButton.vue'
+import WinnersBlock from '@/widgets/winners-block/ui/WinnersBlock.vue'
 
 defineOptions({
-  name: 'UsersLotteryPage'
+  name: 'UsersLotteryPage',
 })
 
 const route = useRoute()
 const router = useRouter()
+const usersStore = useUsersStore()
 
-const users = ref<User[]>([])
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-const totalUsers = ref(0)
+const { users, total: totalUsers, loading: isLoading, error } = storeToRefs(usersStore)
+const { fetchUsers: fetchUsersFromStore, removeUser } = usersStore
+
 const limit = 10
-
 const currentPage = ref(Number(route.query.page) || 1)
 const searchQuery = ref((route.query.q as string) || '')
-let searchTimeout: ReturnType<typeof setTimeout>
+let searchTimeout: ReturnType<typeof setTimeout> | undefined
 
 const winnerIds = ref<number[]>([])
 const STORAGE_KEY_WINNERS = 'lottery_winners'
 
 onMounted(() => {
   const savedWinners = localStorage.getItem(STORAGE_KEY_WINNERS)
+
   if (savedWinners) {
     try {
       winnerIds.value = JSON.parse(savedWinners)
-    } catch (e) {
-      console.error(e)
+    } catch (error) {
+      console.error(error)
     }
   }
-  fetchUsers()
+
+  loadUsers()
 })
 
-watch(winnerIds, (newVal) => {
-  localStorage.setItem(STORAGE_KEY_WINNERS, JSON.stringify(newVal))
-}, { deep: true })
+watch(
+  winnerIds,
+  (newVal) => {
+    localStorage.setItem(STORAGE_KEY_WINNERS, JSON.stringify(newVal))
+  },
+  { deep: true },
+)
 
-const participantsForWinners = computed<Participant[]>(() => {
-  return users.value.map(user => ({
+const participantsForWinners = computed<Participant[]>(() =>
+  users.value.map((user) => ({
     id: user.id,
     name: `${user.firstName} ${user.lastName}`,
     email: user.email,
     dob: '',
-    phone: user.phone
-  }))
-})
+    phone: user.phone,
+  })),
+)
 
-const currentWinners = computed<Participant[]>(() => {
-  return winnerIds.value
-    .map(id => {
-      const user = users.value.find(u => u.id === id)
+const currentWinners = computed<Participant[]>(() =>
+  winnerIds.value
+    .map((id) => {
+      const user = users.value.find((item) => item.id === id)
+
       if (!user) return undefined
+
       return {
         id: user.id,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         dob: '',
-        phone: user.phone
+        phone: user.phone,
       }
     })
-    .filter((p): p is Participant => p !== undefined)
-})
+    .filter((participant): participant is Participant => participant !== undefined),
+)
 
 const handleAddWinner = (winner: Participant) => {
   if (!winnerIds.value.includes(winner.id)) {
@@ -77,47 +84,20 @@ const handleAddWinner = (winner: Participant) => {
 }
 
 const handleRemoveWinner = (winnerId: number) => {
-  winnerIds.value = winnerIds.value.filter(id => id !== winnerId)
+  winnerIds.value = winnerIds.value.filter((id) => id !== winnerId)
 }
 
-const fetchUsers = async () => {
-  isLoading.value = true
-  error.value = null
+const loadUsers = async () => {
+  const skip = (currentPage.value - 1) * limit
 
   try {
-    const skip = (currentPage.value - 1) * limit
-    const response = await userService.getAll({
+    await fetchUsersFromStore({
       limit,
       skip,
-      q: searchQuery.value
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)
-
-    if (Array.isArray(response)) {
-      users.value = response
-      totalUsers.value = response.length
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      users.value = (response as any).users || (response as any).items || []
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      totalUsers.value = (response as any).total || users.value.length
-    }
-  } catch (err) {
-    error.value = (err as Error).message
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const handleUserSaved = (savedUser: User, isNew: boolean) => {
-  if (isNew) {
-    users.value.unshift(savedUser)
-    totalUsers.value++
-  } else {
-    const index = users.value.findIndex(u => u.id === savedUser.id)
-    if (index !== -1) {
-      users.value[index] = savedUser
-    }
+      q: searchQuery.value,
+    })
+  } catch {
+    // Помилка зберігається у сховищі.
   }
 }
 
@@ -125,10 +105,8 @@ const deleteUser = async (id: number) => {
   if (!confirm('Ви впевнені, що хочете видалити цього користувача?')) return
 
   try {
-    await userService.delete(id)
-    users.value = users.value.filter(u => u.id !== id)
-    totalUsers.value--
-    winnerIds.value = winnerIds.value.filter(winnerId => winnerId !== id)
+    await removeUser(id)
+    winnerIds.value = winnerIds.value.filter((winnerId) => winnerId !== id)
   } catch {
     alert('Помилка видалення')
   }
@@ -139,8 +117,8 @@ const updateUrl = () => {
     path: route.path,
     query: {
       page: currentPage.value > 1 ? currentPage.value : undefined,
-      q: searchQuery.value || undefined
-    }
+      q: searchQuery.value || undefined,
+    },
   })
 }
 
@@ -160,7 +138,9 @@ const prevPage = () => {
 
 const handleSearch = (newValue: string | number | undefined) => {
   const value = String(newValue || '')
-  clearTimeout(searchTimeout)
+
+  if (searchTimeout) clearTimeout(searchTimeout)
+
   searchTimeout = setTimeout(() => {
     searchQuery.value = value
     currentPage.value = 1
@@ -174,11 +154,12 @@ watch(
     if (newQuery.page !== oldQuery?.page || newQuery.q !== oldQuery?.q) {
       currentPage.value = Number(newQuery.page) || 1
       searchQuery.value = (newQuery.q as string) || ''
-      fetchUsers()
+      loadUsers()
     }
-  }
+  },
 )
 </script>
+
 
 <template>
   <main class="min-h-screen bg-slate-50 py-10 px-4">
@@ -290,7 +271,7 @@ watch(
           </div>
         </div>
       </div>
-      <RouterView @user-saved="handleUserSaved" />
+      <RouterView />
     </div>
   </main>
 </template>

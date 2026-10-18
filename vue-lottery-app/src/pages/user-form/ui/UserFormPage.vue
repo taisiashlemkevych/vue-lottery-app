@@ -3,13 +3,16 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
-import { userService } from "@/app/providers/services";
+import { useUsersStore } from '@/entities/user/model/users.store'
+import type { CreateUserDto } from '@/entities/user/model/types'
 import AppInput from '@/shared/ui/AppInput.vue'
-import AppButton from "@/shared/ui/AppButton.vue";
-import type { User, CreateUserDto } from '@/entities/user/model/types'
+import AppButton from '@/shared/ui/AppButton.vue'
 
 const route = useRoute()
 const router = useRouter()
+const usersStore = useUsersStore()
+const { fetchUser, createUser, updateUser } = usersStore
+
 const isEditMode = ref(false)
 const isLoading = ref(false)
 const userId = ref<number | null>(null)
@@ -20,18 +23,18 @@ if (route.params.id) {
 }
 
 const schema = yup.object({
-  firstName: yup.string().required('Ім\'я є обов\'язковим'),
-  lastName: yup.string().required('Прізвище є обов\'язковим'),
-  username: yup.string().required('Username є обов\'язковим'),
-  email: yup.string().email('Невірний формат email').required('Email є обов\'язковим'),
-  password: yup.string().min(6, 'Пароль має містити мінімум 6 символів').required('Пароль є обов\'язковим'),
-  age: yup.number().typeError('Має бути числом').required('Вік є обов\'язковим').min(1, 'Мінімум 1 рік'),
-  gender: yup.string().required('Стать є обов\'язковою'),
-  phone: yup.string().required('Телефон є обов\'язковим')
+  firstName: yup.string().required("Ім'я є обов'язковим"),
+  lastName: yup.string().required("Прізвище є обов'язковим"),
+  username: yup.string().required("Username є обов'язковим"),
+  email: yup.string().email('Невірний формат email').required("Email є обов'язковим"),
+  password: yup.string().min(6, 'Пароль має містити мінімум 6 символів').required("Пароль є обов'язковим"),
+  age: yup.number().typeError('Має бути числом').required("Вік є обов'язковим").min(1, 'Мінімум 1 рік'),
+  gender: yup.string().required("Стать є обов'язковою"),
+  phone: yup.string().required("Телефон є обов'язковим"),
 })
 
 const { handleSubmit, setValues } = useForm<CreateUserDto>({
-  validationSchema: schema
+  validationSchema: schema,
 })
 
 const { value: firstName, errorMessage: firstNameError } = useField<string>('firstName')
@@ -40,17 +43,16 @@ const { value: username, errorMessage: usernameError } = useField<string>('usern
 const { value: email, errorMessage: emailError } = useField<string>('email')
 const { value: password, errorMessage: passwordError } = useField<string>('password')
 const { value: age, errorMessage: ageError } = useField<number>('age')
-const { value: gender, errorMessage: genderError } = useField<string>('gender', { initialValue: 'male' })
+const { value: gender, errorMessage: genderError } = useField<string>('gender', {
+  initialValue: 'male',
+})
 const { value: phone, errorMessage: phoneError } = useField<string>('phone')
-
-const emit = defineEmits<{
-  (e: 'user-saved', user: User, isNew: boolean): void
-}>()
 
 onMounted(async () => {
   if (isEditMode.value && userId.value) {
     try {
-      const user = await userService.getById(userId.value)
+      const user = await fetchUser(userId.value)
+
       setValues({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -59,7 +61,7 @@ onMounted(async () => {
         password: user.password || '',
         age: user.age,
         gender: user.gender,
-        phone: user.phone
+        phone: user.phone,
       })
     } catch {
       alert('Помилка завантаження користувача')
@@ -70,21 +72,17 @@ onMounted(async () => {
 
 const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
+
   try {
-    let savedUser: User
-    
     if (isEditMode.value && userId.value) {
-      savedUser = await userService.update(userId.value, values)
-      emit('user-saved', savedUser, false)
+      await updateUser(userId.value, values)
     } else {
-      savedUser = await userService.create(values)
-      savedUser.id = Math.floor(Math.random() * 1000) + 300
-      emit('user-saved', savedUser, true)
+      await createUser(values)
     }
-    
+
     router.push('/users')
   } catch {
-    alert('Помилка при збереженні')
+    alert('Помилка під час збереження')
   } finally {
     isLoading.value = false
   }
