@@ -1,0 +1,24 @@
+import { http } from "@/shared/api/http-client";
+import type { AuthResponse, LoginCredentials } from '@/entities/session/model/types'
+
+export class AuthService {
+  login(credentials: LoginCredentials): Promise<AuthResponse> {
+    return http<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    })
+  }
+
+  me(): Promise<Omit<AuthResponse, 'accessToken' | 'refreshToken'>> {
+    return http<Omit<AuthResponse, 'accessToken' | 'refreshToken'>>(
+      '/auth/me',
+    )
+  }
+
+  refresh(refreshToken: string): Promise<AuthResponse> {
+    return http<AuthResponse>('/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken, expiresInMins: 30 }),
+    })
+  }
+}
