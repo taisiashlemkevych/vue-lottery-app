@@ -40,19 +40,36 @@ const pickRandomWinner = () => {
 </script>
 
 <template>
-  <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+  <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      
       <div class="flex-1 w-full">
-        <h2 class="text-xl font-bold text-slate-800 mb-3"> Winners </h2>
-        <div class="flex flex-wrap gap-2"> <span v-if="winners.length === 0" class="text-sm text-slate-400"> No winners
-            yet </span>
-          <div v-for="winner in winners" :key="winner.id"
-            class="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-md text-sm"> <span>{{ winner.name
-              }}</span> <button type="button" class="text-blue-500 hover:text-red-500"
-              @click="emit('remove-winner', winner.id)"> ✕ </button> </div>
+        <h2 class="text-lg font-bold text-slate-800 mb-3">Переможці</h2>
+        
+        <span v-if="winners.length === 0" class="text-sm text-slate-400">
+          Поки жодного переможця
+        </span>
+
+        <div class="flex flex-wrap gap-2">
+          <div 
+            v-for="winner in winners" 
+            :key="winner.id"
+            class="flex items-center gap-3 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm border border-blue-100"
+          >
+            <div>
+              <span class="font-semibold block leading-tight">{{ winner.name }}</span>
+              <span class="text-xs text-blue-400">{{ winner.email }}</span>
+            </div>
+
+            <button 
+              type="button" 
+              class="text-blue-400 hover:text-red-500 font-bold px-1"
+              @click="emit('remove-winner', winner.id)" > ✕
+            </button>
+          </div>
         </div>
       </div>
-      <AppButton :disabled="isButtonDisabled" @click="pickRandomWinner"> New winner </AppButton>
+      <AppButton :disabled="isButtonDisabled" @click="pickRandomWinner"> Обрати переможця </AppButton>
     </div>
   </div>
 </template>
